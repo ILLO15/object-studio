@@ -44,6 +44,19 @@ h1 span{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
 #frame .grid{position:absolute;inset:0;background:
   linear-gradient(to right,transparent calc(33.333% - .5px),rgba(255,255,255,.55) calc(33.333% - .5px),rgba(255,255,255,.55) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.55) calc(66.666% - .5px),rgba(255,255,255,.55) calc(66.666% + .5px),transparent calc(66.666% + .5px)),
   linear-gradient(to bottom,transparent calc(33.333% - .5px),rgba(255,255,255,.55) calc(33.333% - .5px),rgba(255,255,255,.55) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.55) calc(66.666% - .5px),rgba(255,255,255,.55) calc(66.666% + .5px),transparent calc(66.666% + .5px))}
+#vcube{position:absolute;left:10px;top:10px;width:112px;height:112px;user-select:none;-webkit-user-select:none;touch-action:none}
+#vcube .vc-view{position:absolute;left:28px;top:28px;width:56px;height:56px;perspective:400px;cursor:grab}
+#vcube .vc-view:active{cursor:grabbing}
+#vcube .vc-cube{position:absolute;inset:0;transform-style:preserve-3d}
+#vcube .f{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#3a3a3a;
+  background:rgba(246,246,245,.92);border:1px solid #9a9a99;backface-visibility:hidden;-webkit-backface-visibility:hidden;cursor:pointer}
+#vcube .f:hover{background:#ffffff;color:#111}
+#vcube .va{position:absolute;width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:50%;
+  background:rgba(246,246,245,.82);color:#3a3a3a;cursor:pointer}
+#vcube .va:hover{background:#ffffff;color:#111}
+#vcube .va svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#vcube .up{left:44px;top:0}#vcube .down{left:44px;bottom:0}#vcube .left{left:0;top:44px}#vcube .right{right:0;top:44px}
+#vcube .ccw{left:2px;top:2px}#vcube .cw{right:2px;top:2px}
 #hint{position:absolute;left:10px;bottom:8px;font-size:11.5px;color:#fff;background:rgba(0,0,0,.42);padding:4px 8px;border-radius:2px;pointer-events:none;max-width:calc(100% - 20px)}
 #msg{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--muted);font-family:var(--mono);pointer-events:none;text-align:center;padding:16px;background:var(--stage)}
 #drop{position:absolute;inset:8px;border:1.5px dashed var(--fg);border-radius:4px;display:grid;place-items:center;font-size:14px;background:color-mix(in srgb,var(--stage) 85%,transparent)}
@@ -118,6 +131,22 @@ select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line
   <div id="stage">
     <div id="frame"><div class="grid" id="gridOv" hidden></div><span class="tag" id="frameTag">—</span></div>
     <div id="hint">—</div>
+    <div id="vcube" aria-label="방향 큐브">
+      <div class="vc-view" id="vcView" title="드래그해서 자유 회전 · 면을 누르면 그 면을 봅니다"><div class="vc-cube" id="vcCube">
+        <div class="f" data-face="front" style="transform:translateZ(28px)">정면</div>
+        <div class="f" data-face="back" style="transform:rotateY(180deg) translateZ(28px)">후면</div>
+        <div class="f" data-face="lside" style="transform:rotateY(90deg) translateZ(28px)">좌</div>
+        <div class="f" data-face="rside" style="transform:rotateY(-90deg) translateZ(28px)">우</div>
+        <div class="f" data-face="top" style="transform:rotateX(90deg) translateZ(28px)">윗면</div>
+        <div class="f" data-face="under" style="transform:rotateX(-90deg) translateZ(28px)">밑면</div>
+      </div></div>
+      <button class="va up" data-rot="up" title="위로 90° (Shift 15°)" aria-label="위로 회전"><svg viewBox="0 0 16 16"><path d="M3 10l5-5 5 5"/></svg></button>
+      <button class="va down" data-rot="down" title="아래로 90° (Shift 15°)" aria-label="아래로 회전"><svg viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button>
+      <button class="va left" data-rot="left" title="왼쪽으로 90° (Shift 15°)" aria-label="왼쪽으로 회전"><svg viewBox="0 0 16 16"><path d="M10 3L5 8l5 5"/></svg></button>
+      <button class="va right" data-rot="right" title="오른쪽으로 90° (Shift 15°)" aria-label="오른쪽으로 회전"><svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></button>
+      <button class="va ccw" data-rot="ccw" title="반시계 방향 90° (Shift 15°)" aria-label="반시계 방향 기울이기"><svg viewBox="0 0 16 16"><path d="M5.5 4.5A5 5 0 1 1 3.2 9"/><path d="M2.5 3.5v3.2h3.2"/></svg></button>
+      <button class="va cw" data-rot="cw" title="시계 방향 90° (Shift 15°)" aria-label="시계 방향 기울이기"><svg viewBox="0 0 16 16"><path d="M10.5 4.5A5 5 0 1 0 12.8 9"/><path d="M13.5 3.5v3.2h-3.2"/></svg></button>
+    </div>
     <div id="toast" hidden><span id="toastText"></span><button id="toastAct" hidden></button><button id="toastClose">닫기</button></div>
     <div id="msg">스튜디오 준비 중…</div>
     <div id="drop" hidden>파일을 놓으면 스튜디오에 올립니다</div>
@@ -151,7 +180,6 @@ select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line
   <div class="quick cam">
     <div class="grp" id="drag" aria-label="드래그 동작"><span class="lbl">드래그</span>
       <button data-d="object" id="d-obj">오브젝트 좌우 회전</button>
-      <button data-d="free" id="d-free">오브젝트 자유 회전</button>
       <button data-d="camera" id="d-cam">카메라 이동</button>
       <button id="resetPose">자세 초기화</button>
     </div>
@@ -214,6 +242,12 @@ select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line
 
   <section>
     <h2>홀 · 배경 · 조명</h2>
+    <div class="row" id="styles" aria-label="렌더 스타일">
+      <button data-st="standard">기본</button>
+      <button data-st="illust">일러스트</button>
+      <button data-st="line">라인 드로잉</button>
+      <button data-st="real">실사 강화</button>
+    </div>
     <div class="row" id="halls" aria-label="홀">
       <button data-h="horizon" id="h-hor">호리즌</button>
       <button data-h="round" id="h-round">원형 호리즌</button>
@@ -284,13 +318,15 @@ select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line
   <div class="card">
     <h2 id="helpTitle">도움말 <button id="helpClose">닫기</button></h2>
     <dl>
-      <dt>화면 조작</dt><dd>드래그 동작에 따라 오브젝트를 좌우로 돌리거나, 자유롭게 기울이거나, 카메라를 움직입니다. 휠·핀치는 확대, 우클릭·두 손가락 드래그는 화면 이동입니다. 오브젝트를 클릭하면 그 부위가 재질 적용 대상으로 선택됩니다.</dd>
+      <dt>화면 조작</dt><dd>드래그 동작에 따라 오브젝트를 좌우로 돌리거나 카메라를 움직입니다. 휠·핀치는 확대, 우클릭·두 손가락 드래그는 화면 이동입니다. 오브젝트를 클릭하면 그 부위가 재질 적용 대상으로 선택됩니다.</dd>
+      <dt>방향 큐브</dt><dd>왼쪽 위 큐브는 오브젝트와 함께 돌아가며 지금 방향을 보여 줍니다. 바깥 화살표는 오브젝트를 90°씩(Shift를 누르면 15°씩) 돌리고, 곡선 화살표는 화면 방향으로 기울입니다. 면을 누르면 그 면을 정면으로 보고, 큐브를 드래그하면 자유롭게 돌립니다.</dd>
+      <dt>렌더 스타일</dt><dd>기본은 사진 같은 질감입니다. 일러스트는 면을 단계로 칠하고 외곽선을 넣습니다. 라인 드로잉은 흰 면에 선만 남깁니다. 실사 강화는 구석 음영(AO)과 필름 톤을 더해 더 사실적으로 보이지만 화면이 조금 느려질 수 있습니다.</dd>
       <dt>단축키</dt><dd>Ctrl(⌘)+Z 실행 취소, Ctrl(⌘)+Shift+Z 또는 Ctrl+Y 다시 실행</dd>
       <dt>오브젝트 파일</dt><dd>STL · OBJ · GLB · 3MF. 버튼으로 고르거나 화면에 끌어다 놓습니다. 파일은 이 브라우저 안에서만 열리고 외부로 올라가지 않습니다. 하나로 된 STL은 떨어진 덩어리 단위로 자동으로 부위를 나눕니다. 누워 있는 파일은 '눕힘 보정'으로 세웁니다.</dd>
       <dt>파일 단위</dt><dd>STL·OBJ에는 단위 정보가 없습니다. 상단 '파일 단위'에서 원본 단위를 지정하면 치수가 그 단위로 표시됩니다.</dd>
       <dt>재질과 텍스처</dt><dd>'전체' 또는 특정 부위를 고른 뒤 재질을 바꿉니다. 부위별로 바꾼 설정은 이름 옆에 점으로 표시됩니다. 텍스처는 나무·패브릭·석재 사진(PNG·JPG)을 쓰고, 이음매 없는 타일 이미지일수록 자연스럽습니다.</dd>
       <dt>출력 범위</dt><dd>밝은 테두리 안쪽이 사진·영상에 실제로 담기는 영역입니다. 바깥 어두운 부분은 잘립니다.</dd>
-      <dt>연출 프리셋</dt><dd>홀·배경·조명·그림자·렌즈·화면비를 묶어 저장합니다. 재질과 오브젝트는 포함하지 않습니다.</dd>
+      <dt>연출 프리셋</dt><dd>렌더 스타일·홀·배경·조명·그림자·렌즈·화면비를 묶어 저장합니다. 재질과 오브젝트는 포함하지 않습니다.</dd>
       <dt>구도와 일괄 출력</dt><dd>현재 각도·거리·렌즈·화면비를 구도로 저장해 두고, 저장한 구도 전부를 한 번에 PNG로 렌더링해 ZIP 하나로 받습니다.</dd>
       <dt>자동 복구</dt><dd>작업 상태와 마지막으로 불러온 파일을 이 브라우저에 자동 저장합니다. 다시 열면 이어서 작업할 수 있습니다. 다른 기기나 브라우저로 옮기려면 템플릿으로 내보내세요.</dd>
       <dt>템플릿</dt><dd>스튜디오 설정, 재질, 저장한 구도, 연출 프리셋을 JSON 파일 하나로 내보내고 다시 불러옵니다. 오브젝트 파일은 포함하지 않습니다.</dd>
@@ -316,7 +352,7 @@ const idb=(()=>{let p;const db=()=>p||(p=new Promise((res,rej)=>{const q=indexed
 
 /* ---------- state ---------- */
 const DEFAULT={
-  studio:{hall:'horizon',bg:'#ffffff',light:'soft',az:-40,el:55,exp:1,shOp:0.32,shSoft:8,focal:50,ratio:'4:5',alpha:false,guide:true,grid:false,shotRes:3840,recLen:10,recRes:1920},
+  studio:{style:'standard',hall:'horizon',bg:'#ffffff',light:'soft',az:-40,el:55,exp:1,shOp:0.32,shSoft:8,focal:50,ratio:'4:5',alpha:false,guide:true,grid:false,shotRes:3840,recLen:10,recRes:1920},
   drag:'object', units:'mm', orient:{x:0,y:0},
   mat:{all:{preset:'matte',color:'#ffffff',rough:0.55,tile:40,tex:null},parts:{}},
   shots:[], view:null,
@@ -328,11 +364,14 @@ const LIGHTS={
   low:{key:3.2,rim:1.6,hemi:0.08,env:0.12,exp:0.95,az:-70,el:32},
   rim:{key:1.0,rim:3.2,hemi:0.25,env:0.3,exp:1.0,az:-30,el:45},
 };
-const STUDIO_KEYS=['hall','bg','light','az','el','exp','shOp','shSoft','focal','ratio'];
+const STUDIO_KEYS=['style','hall','bg','light','az','el','exp','shOp','shSoft','focal','ratio'];
 const BUILTIN=[
-  {id:'b-white',name:'흰 배경 상품컷',s:{hall:'horizon',bg:'#ffffff',light:'high',az:-25,el:70,exp:1.12,shOp:0.26,shSoft:14,focal:85,ratio:'1:1'}},
-  {id:'b-dark',name:'어두운 전시컷',s:{hall:'podium',bg:'#4a4a4a',light:'low',az:-70,el:32,exp:0.95,shOp:0.6,shSoft:5,focal:50,ratio:'4:5'}},
-  {id:'b-grey',name:'그레이 무드컷',s:{hall:'round',bg:'#d2d2d2',light:'rim',az:-30,el:45,exp:1.0,shOp:0.4,shSoft:9,focal:50,ratio:'3:2'}},
+  {id:'b-white',name:'흰 배경 상품컷',s:{style:'standard',hall:'horizon',bg:'#ffffff',light:'high',az:-25,el:70,exp:1.12,shOp:0.26,shSoft:14,focal:85,ratio:'1:1'}},
+  {id:'b-dark',name:'어두운 전시컷',s:{style:'standard',hall:'podium',bg:'#4a4a4a',light:'low',az:-70,el:32,exp:0.95,shOp:0.6,shSoft:5,focal:50,ratio:'4:5'}},
+  {id:'b-grey',name:'그레이 무드컷',s:{style:'standard',hall:'round',bg:'#d2d2d2',light:'rim',az:-30,el:45,exp:1.0,shOp:0.4,shSoft:9,focal:50,ratio:'3:2'}},
+  {id:'b-illust',name:'2D 일러스트컷',s:{style:'illust',hall:'floor',bg:'#ececec',light:'soft',az:-40,el:55,exp:1.0,shOp:0.22,shSoft:2,focal:50,ratio:'4:5'}},
+  {id:'b-line',name:'라인 드로잉컷',s:{style:'line',hall:'floor',bg:'#ffffff',light:'high',az:-25,el:70,exp:1.0,shOp:0.12,shSoft:6,focal:50,ratio:'4:5'}},
+  {id:'b-real',name:'실사 강화컷',s:{style:'real',hall:'horizon',bg:'#e3e3e3',light:'soft',az:-50,el:40,exp:1.05,shOp:0.42,shSoft:10,focal:85,ratio:'4:5'}},
 ];
 let userPresets=ls.get('studio.presets')||[];
 
@@ -365,9 +404,9 @@ const wall=(w,h)=>new THREE.Mesh(new THREE.PlaneGeometry(w,h),hallMat);
 const PODIUM_H=24;
 // floor shadow overlay: shows the blurred silhouette from updateGroundShadow(); clipR trims it to the podium top
 const catcherMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,
-  uniforms:{map:{value:null},strength:{value:0.32},clipR:{value:0}},
+  uniforms:{map:{value:null},strength:{value:0.32},clipR:{value:0},hdr:{value:1}},
   vertexShader:'varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
-  fragmentShader:'uniform sampler2D map;uniform float strength,clipR;varying vec2 vUv;varying vec3 vW;void main(){vec2 t=texture2D(map,vUv).rg;float a=max(t.g,t.r)*strength;if(clipR>0.&&length(vW.xz)>clipR)a=0.;gl_FragColor=vec4(0.,0.,0.,a);}'});
+  fragmentShader:'uniform sampler2D map;uniform float strength,clipR,hdr;varying vec2 vUv;varying vec3 vW;void main(){vec2 t=texture2D(map,vUv).rg;float a=max(t.g,t.r)*strength;if(clipR>0.&&length(vW.xz)>clipR)a=0.;a=1.-pow(1.-a,hdr);gl_FragColor=vec4(0.,0.,0.,a);}'});
 const catcher=new THREE.Mesh(new THREE.PlaneGeometry(1,1),catcherMat); catcher.rotation.x=-Math.PI/2; catcher.frustumCulled=false; studio.add(catcher);
 function buildHall(type){
   hall.children.slice().forEach(o=>{hall.remove(o);o.geometry.dispose();});
@@ -395,11 +434,12 @@ Object.assign(key.shadow.camera,{left:-260,right:260,top:260,bottom:-260,near:10
 const rim=new THREE.DirectionalLight(0xffffff,0); rim.position.set(80,260,-400);
 const hemi=new THREE.HemisphereLight(0xffffff,0xd6d6d6,0.6);
 studio.add(key,key.target,rim,hemi);
-let builtHall=null;
+let builtHall=null, appliedStyle='standard';
 function applyStudioKeepView(){const y0=turntable.position.y;applyStudio();const d=turntable.position.y-y0;if(d){ctl.target.y+=d;cam.position.y+=d;}}
 function applyStudio(){
   const s=ST.studio, L=LIGHTS[s.light];
   if(builtHall!==s.hall){buildHall(s.hall);builtHall=s.hall;}
+  if(appliedStyle!==s.style){appliedStyle=s.style;if(objRoot)applyMaterials();}
   key.intensity=L.key; rim.intensity=L.rim; hemi.intensity=L.hemi; scene.environmentIntensity=L.env; r.toneMappingExposure=s.exp;
   const a=s.az*Math.PI/180,e=s.el*Math.PI/180; key.position.set(600*Math.sin(a)*Math.cos(e),600*Math.sin(e),600*Math.cos(a)*Math.cos(e));
   catcherMat.uniforms.strength.value=s.shOp;
@@ -491,8 +531,16 @@ function texFor(spec,P){
   if(P.tex) return procCache[P.tex]||(procCache[P.tex]=proc[P.tex]());
   return null;
 }
+let toonRamp=null;
+const ramp=steps=>{const d=new Uint8Array(steps.map(v=>Math.round(v*255)));const t=new THREE.DataTexture(d,steps.length,1,THREE.RedFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t;};
 function buildMat(spec){
-  const P=PRESETS.find(p=>p.id===spec.preset)||PRESETS[1];
+  const P=PRESETS.find(p=>p.id===spec.preset)||PRESETS[1], st=ST.studio.style;
+  if(st==='illust'||st==='line'){ // flat bands of tone instead of physical shading
+    const m=new THREE.MeshToonMaterial({color:st==='line'?'#ffffff':spec.color,gradientMap:st==='line'?(toonRamp??={}).line??=ramp([0.84,1]):(toonRamp??={}).ill??=ramp([0.42,0.72,1]),
+      polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    const map=st==='illust'&&texFor(spec,P); if(map){const t=map.clone();t.needsUpdate=true;t.repeat.set(1/spec.tile,1/spec.tile);m.map=t;}
+    return m;
+  }
   const Ctor=P.phys?THREE.MeshPhysicalMaterial:THREE.MeshStandardMaterial;
   const m=new Ctor({color:spec.color,metalness:0,...P.p,roughness:spec.rough});
   const map=texFor(spec,P);
@@ -503,14 +551,14 @@ function applyMaterials(){
   const next=new Map();
   parts.forEach((mesh,i)=>{
     const spec=specOf(i); const P=PRESETS.find(p=>p.id===spec.preset)||PRESETS[1];
-    if(P.orig){if(mesh.userData.idxGeo)mesh.geometry=mesh.userData.idxGeo;mesh.material=mesh.userData.orig;return;}
-    const k=JSON.stringify(spec); let m=next.get(k)||matCache.get(k); if(!m)m=buildMat(spec); next.set(k,m);
-    const textured=!!texFor(spec,P);
+    if(P.orig&&(ST.studio.style==='standard'||ST.studio.style==='real')){if(mesh.userData.idxGeo)mesh.geometry=mesh.userData.idxGeo;mesh.material=mesh.userData.orig;return;}
+    const k=ST.studio.style+JSON.stringify(spec); let m=next.get(k)||matCache.get(k); if(!m)m=buildMat(spec); next.set(k,m);
+    const textured=!!texFor(spec,P)&&ST.studio.style!=='line';
     if(textured)mesh.geometry=boxUV(mesh); else if(mesh.userData.idxGeo)mesh.geometry=mesh.userData.idxGeo;
     mesh.material=m;
   });
   matCache.forEach((m,k)=>{if(!next.has(k)){m.map?.dispose();m.dispose();}});
-  matCache=next; invalidate();
+  matCache=next; applyInk(); invalidate();
 }
 function editSpec(patch){ // edit the current target; a part edit creates an override
   if(matTarget==='all'){Object.assign(ST.mat.all,patch);}
@@ -561,7 +609,7 @@ const captureView=()=>({dir:curDir,h:curH,yaw:turntable.rotation.y,q:free.quater
 function setView(v){if(!v)return;curDir=v.dir||curDir;curH=v.h||curH;turntable.rotation.y=v.yaw;free.quaternion.fromArray(v.q);cam.position.fromArray(v.cam);ctl.target.fromArray(v.tgt);ctl.update();ground();invalidate();}
 function layout(){
   if(recording)return;
-  const R=frameRect(); r.setSize(R.W,R.H); cam.aspect=R.W/R.H; cam.updateProjectionMatrix();
+  const R=frameRect(); r.setSize(R.W,R.H); cam.aspect=R.W/R.H; cam.updateProjectionMatrix(); inkResize();
   const f=$('frame'); Object.assign(f.style,{left:R.x+'px',top:R.y+'px',width:R.w+'px',height:R.h+'px'});
   const [w,h]=outSize(+ST.studio.shotRes); $('frameTag').textContent=`${ST.studio.ratio} · ${w}×${h}`;
   invalidate();
@@ -579,7 +627,7 @@ function commit(){
 }
 function updUndo(){$('undo').disabled=hi<=0;$('redo').disabled=hi>=hist.length-1;}
 function applyState(s,{view=true}={}){
-  const keepShots=s.shots; ST=Object.assign(clone(DEFAULT),clone(s)); ST.studio=Object.assign(clone(DEFAULT.studio),s.studio||{}); ST.shots=keepShots||[];
+  const keepShots=s.shots; ST=Object.assign(clone(DEFAULT),clone(s)); ST.studio=Object.assign(clone(DEFAULT.studio),s.studio||{}); ST.shots=keepShots||[]; if(ST.drag==='free')ST.drag='object';
   applyStudio(); layout(); applyDrag(); if(objRoot){normalize();applyMaterials();renderParts();}
   if(view&&ST.view)setView(ST.view); syncUI(); ls.set('studio.v2',ST);
 }
@@ -627,7 +675,89 @@ function updateGroundShadow(){
   r.setRenderTarget(prev);
   catcherMat.uniforms.map.value=gsB.texture; catcher.position.set(cx,y0+0.08,cz); catcher.scale.set(2*S,2*S,1);
 }
-function draw(){updateGroundShadow();r.render(scene,cam);}
+/* ---------- render styles: outlines + crease lines (illust, line), ambient occlusion (real) ---------- */
+let LineKit=null, AOKit=null, composer=null, aoPass=null;
+const INK='#2b2b2b';
+const hullMat=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{thick:{value:0.55},color:{value:new THREE.Color(INK)}},
+  vertexShader:'uniform float thick;void main(){vec4 w=modelMatrix*vec4(position,1.);vec3 n=normalize(mat3(modelMatrix)*normal);w.xyz+=n*thick;gl_Position=projectionMatrix*viewMatrix*w;}',
+  fragmentShader:'uniform vec3 color;void main(){gl_FragColor=vec4(color,1.);}'});
+let lineMat=null;
+async function applyInk(){
+  const st=ST.studio.style, on=st==='illust'||st==='line';
+  if(on&&!LineKit){const [a,b,c]=await Promise.all([import('three/addons/lines/LineSegments2.js'),import('three/addons/lines/LineSegmentsGeometry.js'),import('three/addons/lines/LineMaterial.js')]);
+    LineKit={LineSegments2:a.LineSegments2,LineSegmentsGeometry:b.LineSegmentsGeometry};
+    lineMat=new c.LineMaterial({color:INK,linewidth:0.42,worldUnits:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});inkResize();}
+  parts.forEach(m=>{
+    let ink=m.userData.ink;
+    if(on&&!ink){
+      const g=m.userData.idxGeo||m.geometry; ink=new THREE.Group();
+      const hull=new THREE.Mesh(g,hullMat); hull.raycast=()=>{}; ink.add(hull);
+      const lg=new LineKit.LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g,32));
+      const ls=new LineKit.LineSegments2(lg,lineMat); ls.raycast=()=>{}; ink.add(ls);
+      m.userData.ink=ink; m.add(ink);
+    }
+    if(ink)ink.visible=on;
+  });
+  hullMat.uniforms.thick.value=st==='line'?0.4:0.6;
+  invalidate();
+}
+function inkResize(w,h){if(!lineMat)return;const R=frameRect();lineMat.resolution.set(w||R.W*PR,h||R.H*PR);}
+async function ensureAO(){
+  if(AOKit)return;
+  const [E,RP,G,O]=await Promise.all([import('three/addons/postprocessing/EffectComposer.js'),import('three/addons/postprocessing/RenderPass.js'),import('three/addons/postprocessing/GTAOPass.js'),import('three/addons/postprocessing/OutputPass.js')]);
+  AOKit=true; composer=new E.EffectComposer(r,new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:4})); composer.addPass(new RP.RenderPass(scene,cam));
+  aoPass=new G.GTAOPass(scene,cam,1,1); aoPass.updateGtaoMaterial({radius:FIT*0.35,distanceExponent:1,thickness:FIT*0.1,scale:1.6,samples:16});
+  aoPass.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16}); aoPass.blendIntensity=0.85;
+  const ov=aoPass.overrideVisibility.bind(aoPass); aoPass.overrideVisibility=()=>{ov();catcher.visible=false;}; // the floor shadow overlay is not geometry
+  composer.addPass(aoPass); composer.addPass(new O.OutputPass()); invalidate();
+}
+const useAO=()=>ST.studio.style==='real'&&!ST.studio.alpha;
+function draw(w,h){ // w,h: output pixel size when exporting
+  updateGroundShadow(); updateCube();
+  catcherMat.uniforms.hdr.value=useAO()&&composer?3:1; // blended before tone mapping there, so it needs more weight to read the same
+  if(useAO()){
+    if(!composer){ensureAO();r.render(scene,cam);return;}
+    const sz=r.getDrawingBufferSize(new THREE.Vector2()),W=w||sz.x,H=h||sz.y; if(composer.userData!==W+'x'+H){composer.setPixelRatio(1);composer.setSize(W,H);composer.userData=W+'x'+H;} composer.render();
+  } else r.render(scene,cam);
+}
+
+/* ---------- view cube: shows and turns the object's orientation ---------- */
+const vcCube=$('vcCube'), qTmp=new THREE.Quaternion(), mTmp=new THREE.Matrix4();
+function updateCube(){
+  qTmp.copy(cam.quaternion).invert().multiply(turntable.quaternion).multiply(free.quaternion);
+  const e=mTmp.makeRotationFromQuaternion(qTmp).elements.slice(); // three's y-up to CSS's y-down
+  e[1]=-e[1]; e[4]=-e[4]; e[6]=-e[6]; e[9]=-e[9];
+  vcCube.style.transform=`matrix3d(${e.map(v=>v.toFixed(5)).join(',')})`;
+  $('vcube').hidden=!!recording;
+}
+function rotateObject(kind,deg){
+  if(recording||!objRoot)return; stopSpin();
+  const a=deg*Math.PI/180, base=tween?{q:tween.q1.clone(),r:tween.r1}:{q:free.quaternion.clone(),r:turntable.rotation.y};
+  let q1=base.q, r1=base.r;
+  if(kind==='left'||kind==='right') r1+= kind==='right'?a:-a;
+  else{
+    const right=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0).setY(0).normalize();
+    const toCam=cam.position.clone().sub(ctl.target).setY(0).normalize();
+    const qd=kind==='up'||kind==='down'?new THREE.Quaternion().setFromAxisAngle(right,kind==='up'?-a:a):new THREE.Quaternion().setFromAxisAngle(toCam,kind==='ccw'?a:-a);
+    q1=worldToFree(qd,r1).multiply(base.q);
+  }
+  tween={p0:cam.position.clone(),p1:tween?tween.p1:cam.position.clone(),t0:ctl.target.clone(),t1:tween?tween.t1:ctl.target.clone(),r0:turntable.rotation.y,r1,q0:free.quaternion.clone(),q1,t:0,done:()=>commit()};
+}
+$('vcube').addEventListener('click',e=>{const b=e.target.closest('[data-rot]');if(b)rotateObject(b.dataset.rot,e.shiftKey?15:90);});
+{ // cube: drag = free rotation, click on a face = look at that face
+  let d=null; const view=$('vcView');
+  view.addEventListener('pointerdown',e=>{if(recording)return;d={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,moved:false};view.setPointerCapture(e.pointerId);tween=null;stopSpin();e.preventDefault();});
+  view.addEventListener('pointermove',e=>{if(!d)return;if(Math.hypot(e.clientX-d.x0,e.clientY-d.y0)>3)d.moved=true;if(!d.moved)return;
+    const dx=e.clientX-d.x,dy=e.clientY-d.y,k=Math.PI/120;d.x=e.clientX;d.y=e.clientY;
+    const right=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0).setY(0).normalize();
+    const qd=new THREE.Quaternion().setFromAxisAngle(Y,dx*k).multiply(new THREE.Quaternion().setFromAxisAngle(right,dy*k));
+    free.quaternion.premultiply(worldToFree(qd,turntable.rotation.y)); ground();});
+  const end=e=>{if(!d)return;const was=d;d=null;
+    if(was.moved){commit();return;}
+    const f=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.face);if(!f)return;
+    const face=f.dataset.face; if(face==='top'||face==='under')go(curDir,face); else go(face,curH==='top'||curH==='under'?'high':curH); syncUI();};
+  view.addEventListener('pointerup',end); view.addEventListener('pointercancel',()=>{d=null;});
+}
 
 /* ---------- render loop (on demand) ---------- */
 let dirty=true, spinning=false, recording=null, last=performance.now();
@@ -650,8 +780,8 @@ requestAnimationFrame(loop);
 
 /* ---------- pointer: spin, free rotate, pick ---------- */
 const ptrs=new Map(); let drag=null;
-const HINTS={object:'드래그 좌우 회전 · 휠 확대 · 우클릭 드래그 이동 · 클릭 부위 선택',free:'드래그 자유 회전 · 휠 확대 · 우클릭 드래그 이동 · 클릭 부위 선택',camera:'드래그 카메라 회전 · 휠 확대 · 우클릭 드래그 이동 · 클릭 부위 선택'};
-function applyDrag(){ctl.enableRotate=ST.drag==='camera';r.domElement.style.cursor=ST.drag==='object'?'ew-resize':ST.drag==='free'?'move':'grab';$('hint').textContent=HINTS[ST.drag];}
+const HINTS={object:'드래그 좌우 회전 · 휠 확대 · 우클릭 드래그 이동 · 클릭 부위 선택',camera:'드래그 카메라 회전 · 휠 확대 · 우클릭 드래그 이동 · 클릭 부위 선택'};
+function applyDrag(){ctl.enableRotate=ST.drag==='camera';r.domElement.style.cursor=ST.drag==='object'?'ew-resize':'grab';$('hint').textContent=HINTS[ST.drag];}
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
 r.domElement.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,1);
   drag={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,id:e.pointerId,btn:e.button,moved:false,
@@ -747,7 +877,7 @@ async function renderPNG(long){ // renders exactly the framed region
   const R=frameRect(),[w,h]=outSize(long);
   cam.setViewOffset(R.W,R.H,R.x,R.y,R.w,R.h); r.setPixelRatio(1); r.setSize(w,h,false);
   key.shadow.mapSize.set(4096,4096); key.shadow.map?.dispose(); key.shadow.map=null;
-  draw(); const blob=await new Promise(res=>r.domElement.toBlob(res,'image/png'));
+  inkResize(w,h); draw(w,h); inkResize(); const blob=await new Promise(res=>r.domElement.toBlob(res,'image/png'));
   key.shadow.mapSize.set(2048,2048); key.shadow.map?.dispose(); key.shadow.map=null;
   cam.clearViewOffset(); r.setPixelRatio(PR); layout(); return blob;
 }
@@ -782,7 +912,7 @@ $('rec').onclick=()=>{
   const mime=pickMime(); if(!mime){note('이 브라우저는 화면 녹화를 지원하지 않습니다.');return;}
   if(ST.studio.alpha){ST.studio.alpha=false;applyStudio();syncUI();}
   const R=frameRect(),[w,h]=outSize(+ST.studio.recRes);
-  cam.setViewOffset(R.W,R.H,R.x,R.y,R.w,R.h); r.setPixelRatio(1); r.setSize(w,h,false);
+  cam.setViewOffset(R.W,R.H,R.x,R.y,R.w,R.h); r.setPixelRatio(1); r.setSize(w,h,false); inkResize(w,h);
   Object.assign(r.domElement.style,{left:R.x+'px',top:R.y+'px',width:R.w+'px',height:R.h+'px',right:'auto',bottom:'auto'});
   const rec=new MediaRecorder(r.domElement.captureStream(30),{mimeType:mime,videoBitsPerSecond:w>=2560||h>=2560?16e6:10e6});
   const chunks=[]; rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
@@ -824,7 +954,7 @@ function press(container,attr,val){container.querySelectorAll('button[data-'+att
 function syncUI(){
   const s=ST.studio;
   press($('halls'),'h',s.hall); press($('bgs'),'c',s.bg); $('bgColor').value=s.bg; press($('lights'),'l',s.light);
-  press($('drag'),'d',ST.drag); press($('dirs'),'dir',curDir); press($('heights'),'h',curH);
+  press($('styles'),'st',ST.studio.style); press($('drag'),'d',ST.drag); press($('dirs'),'dir',curDir); press($('heights'),'h',curH);
   press($('lens'),'f',s.focal); press($('ratios'),'r',s.ratio);
   $('alpha').setAttribute('aria-pressed',String(s.alpha)); $('guide').setAttribute('aria-pressed',String(s.guide)); $('grid').setAttribute('aria-pressed',String(s.grid));
   $('frame').classList.toggle('off',!s.guide); $('gridOv').hidden=!s.grid;
@@ -851,6 +981,7 @@ $('dirs').addEventListener('click',e=>{const b=btnOf(e);if(!b||recording)return;
 $('heights').addEventListener('click',e=>{const b=btnOf(e);if(!b||recording)return;stopSpin();go(curDir,b.dataset.h);syncUI();});
 $('spin').onclick=()=>{if(recording)return;spinning=!spinning;$('spin').setAttribute('aria-pressed',String(spinning));if(!spinning)commit();};
 $('resetPose').onclick=()=>{if(recording)return;tween={p0:cam.position.clone(),p1:cam.position.clone(),t0:ctl.target.clone(),t1:ctl.target.clone(),r0:turntable.rotation.y,r1:turntable.rotation.y,q0:free.quaternion.clone(),q1:worldToFree(new THREE.Quaternion().setFromAxisAngle(X,(HEIGHTS[curH].tilt||0)*Math.PI/180),turntable.rotation.y),t:0,done:()=>commit()};};
+$('styles').addEventListener('click',e=>{const b=btnOf(e);if(!b||!b.dataset.st)return;ST.studio.style=b.dataset.st;applyStudio();syncUI();commit();});
 $('drag').addEventListener('click',e=>{const b=btnOf(e);if(!b||!b.dataset.d)return;ST.drag=b.dataset.d;applyDrag();syncUI();commit();});
 $('lens').addEventListener('click',e=>{const b=btnOf(e);if(!b)return;ST.studio.focal=+b.dataset.f;applyStudio();refit();syncUI();commit();});
 $('ratios').addEventListener('click',e=>{const b=btnOf(e);if(!b||recording)return;ST.studio.ratio=b.dataset.r;layout();refit();syncUI();commit();});

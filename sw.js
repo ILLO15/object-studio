@@ -1,6 +1,6 @@
 // Offline cache: app shell is precached; everything else (fonts, etc.) is cached on first use.
 // Bump VERSION whenever any precached file changes so clients pick up the new build.
-const VERSION = 'studio-v3';
+const VERSION = 'studio-v4';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -13,6 +13,21 @@ const SHELL = [
   'vendor/three/examples/jsm/loaders/3MFLoader.js',
   'vendor/three/examples/jsm/utils/BufferGeometryUtils.js',
   'vendor/three/examples/jsm/libs/fflate.module.js',
+  'vendor/three/examples/jsm/lines/LineSegments2.js',
+  'vendor/three/examples/jsm/lines/LineSegmentsGeometry.js',
+  'vendor/three/examples/jsm/lines/LineMaterial.js',
+  'vendor/three/examples/jsm/postprocessing/EffectComposer.js',
+  'vendor/three/examples/jsm/postprocessing/RenderPass.js',
+  'vendor/three/examples/jsm/postprocessing/GTAOPass.js',
+  'vendor/three/examples/jsm/postprocessing/OutputPass.js',
+  'vendor/three/examples/jsm/postprocessing/Pass.js',
+  'vendor/three/examples/jsm/postprocessing/ShaderPass.js',
+  'vendor/three/examples/jsm/postprocessing/MaskPass.js',
+  'vendor/three/examples/jsm/shaders/CopyShader.js',
+  'vendor/three/examples/jsm/shaders/OutputShader.js',
+  'vendor/three/examples/jsm/shaders/GTAOShader.js',
+  'vendor/three/examples/jsm/shaders/PoissonDenoiseShader.js',
+  'vendor/three/examples/jsm/math/SimplexNoise.js',
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
