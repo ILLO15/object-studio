@@ -339,7 +339,7 @@ let userPresets=ls.get('studio.presets')||[];
 /* ---------- renderer & scene ---------- */
 const r=new THREE.WebGLRenderer({antialias:true,alpha:true});
 const PR=Math.min(devicePixelRatio,1.5); r.setPixelRatio(PR);
-r.shadowMap.enabled=true; r.shadowMap.type=THREE.VSMShadowMap;
+r.shadowMap.enabled=true; r.shadowMap.type=THREE.PCFSoftShadowMap; // self-shadowing on the object only; the floor shadow is drawn separately
 r.toneMapping=THREE.ACESFilmicToneMapping;
 stage.prepend(r.domElement);
 const scene=new THREE.Scene();
@@ -363,8 +363,12 @@ function sweep(W,back,R,front,top){ // straight cove: floor sweeping up into a b
 const floorPlane=()=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(6000,6000),hallMat);m.rotation.x=-Math.PI/2;return m;};
 const wall=(w,h)=>new THREE.Mesh(new THREE.PlaneGeometry(w,h),hallMat);
 const PODIUM_H=24;
-const catcherMat=new THREE.ShadowMaterial({opacity:0.32});
-const catcher=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),catcherMat); catcher.rotation.x=-Math.PI/2; catcher.position.y=0.08; catcher.receiveShadow=true; studio.add(catcher);
+// floor shadow overlay: shows the blurred silhouette from updateGroundShadow(); clipR trims it to the podium top
+const catcherMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,
+  uniforms:{map:{value:null},strength:{value:0.32},clipR:{value:0}},
+  vertexShader:'varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
+  fragmentShader:'uniform sampler2D map;uniform float strength,clipR;varying vec2 vUv;varying vec3 vW;void main(){vec2 t=texture2D(map,vUv).rg;float a=max(t.g,t.r)*strength;if(clipR>0.&&length(vW.xz)>clipR)a=0.;gl_FragColor=vec4(0.,0.,0.,a);}'});
+const catcher=new THREE.Mesh(new THREE.PlaneGeometry(1,1),catcherMat); catcher.rotation.x=-Math.PI/2; catcher.frustumCulled=false; studio.add(catcher);
 function buildHall(type){
   hall.children.slice().forEach(o=>{hall.remove(o);o.geometry.dispose();});
   const add=m=>{hall.add(m);return m;};
@@ -381,11 +385,12 @@ function buildHall(type){
     const w2=add(wall(L,H)); w2.position.set(-h,H/2,cz+h); w2.rotation.y=Math.PI/4;
   }
   if(type==='floor') add(floorPlane());
-  if(type==='podium'){const p=add(new THREE.Mesh(new THREE.CylinderGeometry(FIT*0.78,FIT*0.8,PODIUM_H,96),podMat));p.position.y=PODIUM_H/2;p.castShadow=true;p.receiveShadow=true;}
+  if(type==='podium'){const p=add(new THREE.Mesh(new THREE.CylinderGeometry(FIT*0.78,FIT*0.8,PODIUM_H,96),podMat));p.position.y=PODIUM_H/2;}
+  catcherMat.uniforms.clipR.value=type==='podium'?FIT*0.78:0;
   turntable.position.y=type==='podium'?PODIUM_H:0; ground();
 }
 const key=new THREE.DirectionalLight(0xffffff,2.2); key.castShadow=true;
-key.shadow.mapSize.set(2048,2048); key.shadow.blurSamples=16; key.shadow.bias=-0.0004; key.shadow.normalBias=0.3;
+key.shadow.mapSize.set(2048,2048); key.shadow.bias=-0.0004; key.shadow.normalBias=0.3;
 Object.assign(key.shadow.camera,{left:-260,right:260,top:260,bottom:-260,near:10,far:1600});
 const rim=new THREE.DirectionalLight(0xffffff,0); rim.position.set(80,260,-400);
 const hemi=new THREE.HemisphereLight(0xffffff,0xd6d6d6,0.6);
@@ -397,7 +402,7 @@ function applyStudio(){
   if(builtHall!==s.hall){buildHall(s.hall);builtHall=s.hall;}
   key.intensity=L.key; rim.intensity=L.rim; hemi.intensity=L.hemi; scene.environmentIntensity=L.env; r.toneMappingExposure=s.exp;
   const a=s.az*Math.PI/180,e=s.el*Math.PI/180; key.position.set(600*Math.sin(a)*Math.cos(e),600*Math.sin(e),600*Math.cos(a)*Math.cos(e));
-  key.shadow.radius=s.shSoft; catcherMat.opacity=s.shOp;
+  catcherMat.uniforms.strength.value=s.shOp;
   hallMat.color.set(s.bg); podMat.color.set(s.bg).multiplyScalar(0.94);
   scene.background=s.alpha?null:new THREE.Color(s.bg);
   scene.fog=s.alpha?null:new THREE.Fog(s.bg,s.hall==='floor'?900:1800,s.hall==='floor'?2600:4200);
@@ -583,6 +588,47 @@ function redo(){if(hi>=hist.length-1||recording)return;hi++;tween=null;applyStat
 function toast(text,actLabel,act){$('toastText').textContent=text;const b=$('toastAct');b.hidden=!actLabel;b.textContent=actLabel||'';b.onclick=()=>{$('toast').hidden=true;act&&act();};$('toast').hidden=false;}
 $('toastClose').onclick=()=>{$('toast').hidden=true;};
 
+/* ---------- floor shadow ----------
+   The object's silhouette is flattened onto the floor along the key light, rendered from above and blurred.
+   This replaces a soft shadow map (VSM), whose packed depth values streaked on some GPUs at low light angles. */
+// silhouette pass: g = coverage, r = how close that point is to the floor (kept sharp, so the shadow stays grounded at any softness)
+const gsFlat=new THREE.Matrix4(), gsBox=new THREE.Box3(), gsV=new THREE.Vector3();
+const gsScene=new THREE.Scene(), gsMat=new THREE.ShaderMaterial({side:THREE.DoubleSide,depthTest:false,depthWrite:false,
+  blending:THREE.CustomBlending,blendEquation:THREE.MaxEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor,
+  uniforms:{uFlat:{value:gsFlat},y0:{value:0},hc:{value:6}},
+  vertexShader:'uniform mat4 uFlat;uniform float y0,hc;varying float vC;void main(){vec4 w=modelMatrix*vec4(position,1.);vC=1.-smoothstep(0.,hc,w.y-y0);gl_Position=projectionMatrix*viewMatrix*(uFlat*w);}',
+  fragmentShader:'varying float vC;void main(){gl_FragColor=vec4(vC,1.,0.,1.);}'});
+const gsCam=new THREE.OrthographicCamera(-1,1,1,-1,1,40); gsCam.rotation.x=-Math.PI/2;
+const gsRT=new THREE.WebGLRenderTarget(2048,2048,{samples:4}), gsA=new THREE.WebGLRenderTarget(1024,1024), gsB=gsA.clone();
+const blurMat=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tex:{value:null},dir:{value:new THREE.Vector2()},kc:{value:1}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+  fragmentShader:'uniform sampler2D tex;uniform vec2 dir;uniform float kc;varying vec2 vUv;void main(){float s=0.,c=0.,w=0.;for(int i=-12;i<=12;i++){float x=float(i)/4.,k=exp(-.5*x*x);s+=texture2D(tex,vUv+dir*float(i)).g*k;c+=texture2D(tex,vUv+dir*kc*float(i)).r*k;w+=k;}gl_FragColor=vec4(c/w,s/w,0.,1.);}'});
+const quadScene=new THREE.Scene(), quadCam=new THREE.Camera(), quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),blurMat);
+quad.frustumCulled=false; quadScene.add(quad);
+function updateGroundShadow(){
+  catcher.visible=!!objRoot&&ST.studio.shOp>0; if(!catcher.visible)return;
+  if(gsScene.userData.src!==objRoot){ // mirror the object's meshes, sharing geometry
+    gsScene.clear(); gsScene.userData.src=objRoot;
+    parts.forEach(p=>{const m=new THREE.Mesh(p.geometry,gsMat);m.matrixAutoUpdate=false;m.frustumCulled=false;m.userData.src=p;gsScene.add(m);});
+  }
+  scene.updateMatrixWorld();
+  const y0=turntable.position.y, L=gsV.copy(key.position).sub(key.target.position).normalize(), ax=L.x/L.y, az=L.z/L.y;
+  gsFlat.set(1,-ax,0,ax*y0, 0,0,0,y0, 0,-az,1,az*y0, 0,0,0,1); // slide every point along the light down to y0
+  gsBox.setFromObject(objRoot); let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;
+  for(let i=0;i<8;i++){gsV.set(i&1?gsBox.max.x:gsBox.min.x,i&2?gsBox.max.y:gsBox.min.y,i&4?gsBox.max.z:gsBox.min.z).applyMatrix4(gsFlat);
+    x0=Math.min(x0,gsV.x);x1=Math.max(x1,gsV.x);z0=Math.min(z0,gsV.z);z1=Math.max(z1,gsV.z);}
+  const sigma=0.6*ST.studio.shSoft, S=Math.max(x1-x0,z1-z0)/2+3*sigma+4, cx=(x0+x1)/2, cz=(z0+z1)/2;
+  gsScene.children.forEach(m=>{m.matrix.copy(m.userData.src.matrixWorld);m.matrixWorldNeedsUpdate=true;}); gsMat.uniforms.y0.value=y0;
+  Object.assign(gsCam,{left:-S,right:S,top:S,bottom:-S}); gsCam.position.set(cx,y0+10,cz); gsCam.updateProjectionMatrix();
+  const prev=r.getRenderTarget(), step=sigma/(2*S/1024)/4/1024; // 4 taps per sigma, in uv units
+  r.setRenderTarget(gsRT); r.clear(); r.render(gsScene,gsCam); blurMat.uniforms.kc.value=Math.min(1,1.2/sigma);
+  blurMat.uniforms.tex.value=gsRT.texture; blurMat.uniforms.dir.value.set(step,0); r.setRenderTarget(gsA); r.render(quadScene,quadCam);
+  blurMat.uniforms.tex.value=gsA.texture; blurMat.uniforms.dir.value.set(0,step); r.setRenderTarget(gsB); r.render(quadScene,quadCam);
+  r.setRenderTarget(prev);
+  catcherMat.uniforms.map.value=gsB.texture; catcher.position.set(cx,y0+0.08,cz); catcher.scale.set(2*S,2*S,1);
+}
+function draw(){updateGroundShadow();r.render(scene,cam);}
+
 /* ---------- render loop (on demand) ---------- */
 let dirty=true, spinning=false, recording=null, last=performance.now();
 function invalidate(){dirty=true;}
@@ -598,7 +644,7 @@ function loop(now){
   if(recording){const t=(now-recording.t0)/1000;turntable.rotation.y=recording.r0+Math.min(1,t/recording.len)*Math.PI*2;$('recbadge').textContent=`● REC ${t.toFixed(1)}s / ${recording.len}s`;dirty=true;if(t>=recording.len+0.15)stopRec();}
   else if(spinning){turntable.rotation.y+=dt*0.5;dirty=true;}
   if(ctl.update())dirty=true;
-  if(dirty){r.render(scene,cam);dirty=false;}
+  if(dirty){draw();dirty=false;}
 }
 requestAnimationFrame(loop);
 
@@ -701,7 +747,7 @@ async function renderPNG(long){ // renders exactly the framed region
   const R=frameRect(),[w,h]=outSize(long);
   cam.setViewOffset(R.W,R.H,R.x,R.y,R.w,R.h); r.setPixelRatio(1); r.setSize(w,h,false);
   key.shadow.mapSize.set(4096,4096); key.shadow.map?.dispose(); key.shadow.map=null;
-  r.render(scene,cam); const blob=await new Promise(res=>r.domElement.toBlob(res,'image/png'));
+  draw(); const blob=await new Promise(res=>r.domElement.toBlob(res,'image/png'));
   key.shadow.mapSize.set(2048,2048); key.shadow.map?.dispose(); key.shadow.map=null;
   cam.clearViewOffset(); r.setPixelRatio(PR); layout(); return blob;
 }

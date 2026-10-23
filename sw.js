@@ -1,6 +1,6 @@
 // Offline cache: app shell is precached; everything else (fonts, etc.) is cached on first use.
 // Bump VERSION whenever any precached file changes so clients pick up the new build.
-const VERSION = 'studio-v2';
+const VERSION = 'studio-v3';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
